@@ -27,7 +27,8 @@ pluggable through a `ConnectorFactory`, fetched concurrently with a
 configurable outbound proxy
 
 **AI:** LangChain, OpenAI-compatible LLM endpoint — batched sentiment and
-emotion scoring, topic summaries
+emotion scoring, topic summaries; falls back to a regex-based heuristic when
+the LLM is unavailable
 
 **Database:** PostgreSQL + SQLAlchemy (async) + Alembic
 
@@ -52,13 +53,16 @@ logs before they're persisted.
 | `analysis_metrics` | Aggregated sentiment/emotion counts and the resulting "barometer" score |
 | `reports` | Generated report files per analysis run |
 
-## How analysis works
+## Analysis Flow
 
-1. A topic is created with a set of sources.
-2. Backend builds a search plan and fetches sources concurrently.
-3. The LLM scores sentiment and emotion for each mention in batches.
-4. Results are aggregated into trends and a barometer score, served to the
-   frontend as charts.
+![Analysis flow](../assets/flowchart.png)
+
+Sources are fetched concurrently and normalized into a common model
+(`Mention` / `TrendPoint` / `SourceResult`), deduplicated by a SHA-256
+content hash. If the LLM is unavailable, sentiment/emotion scoring falls
+back to a regex-based heuristic instead of failing the run. Each source
+result is tracked independently, so a run can finish as `success`,
+`partial`, or `failed` depending on which sources succeeded.
 
 ---
 
