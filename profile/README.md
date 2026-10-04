@@ -1,69 +1,89 @@
+<div align="center">
+
+![Digital Barometer](../assets/logo.svg){width=128 height=128}
+
 # Digital Barometer
 
-A media-monitoring service that tracks mentions of a topic across the web,
-scores their sentiment and emotions via an LLM, and turns the results into
-trends and reports.
+### Media monitoring with an LLM sentiment barometer
 
-## Architecture
+We collect mentions of a topic across the web, rate their sentiment and emotions,
+and turn them into trends and reports.
 
-![Architecture](../assets/architecture.png)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React_18-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)
+![Traefik](https://img.shields.io/badge/Traefik-24A1C1?logo=traefikproxy&logoColor=white)
 
-| Repository | Stack | Role |
-| --- | --- | --- |
-| [**backend**](https://github.com/digital-barometer/backend) | FastAPI, dishka (DI), PostgreSQL, LangChain | REST API, data collection, LLM analysis |
-| [**frontend**](https://github.com/digital-barometer/frontend) | React 18, TypeScript, Vite, Tailwind CSS, Recharts | Web UI: topics, sources, analysis charts |
-| [**infra**](https://github.com/digital-barometer/infra) | Traefik, PostgreSQL, Docker Compose | Reverse proxy (TLS via Let's Encrypt) and database |
-
-Backend is layered `api → services → repositories → db`, with a separate
-`digital-barometer-db` package (SQLAlchemy models + Alembic migrations)
-shared across services.
-
-## Tech Stack
-
-**Core:** FastAPI, dishka (DI), Pydantic Settings
-
-**Data sources:** GDELT Doc API, NewsAPI, RSS feeds, Google Trends (via SerpApi) —
-pluggable through a `ConnectorFactory`, fetched concurrently with a
-configurable outbound proxy
-
-**AI:** LangChain, OpenAI-compatible LLM endpoint — batched sentiment and
-emotion scoring, topic summaries; falls back to a regex-based heuristic when
-the LLM is unavailable
-
-**Database:** PostgreSQL + SQLAlchemy (async) + Alembic
-
-**Infrastructure:** Docker Compose, Traefik (automatic TLS), GitLab CI
-(`test → build → deploy`, staging + production)
-
-Sensitive data (API keys, `Authorization` headers) is redacted from error
-logs before they're persisted.
-
-## Database Schema
-
-![ERD](../assets/db.png)
-
-| Table | Purpose |
-| --- | --- |
-| `topics` | Monitored topics and their keywords |
-| `sources` | Configured data sources (GDELT, NewsAPI, RSS, Trends) per topic |
-| `analysis_runs` | A single analysis execution for a topic over a date range |
-| `source_results` | Per-source fetch outcome within a run (status, raw payload, item counts) |
-| `mentions` | Individual mentions collected from sources, with sentiment/emotion scores |
-| `trend_points` | Time-series metrics per source (e.g. Google Trends values) |
-| `analysis_metrics` | Aggregated sentiment/emotion counts and the resulting "barometer" score |
-| `reports` | Generated report files per analysis run |
-
-## Analysis Flow
-
-![Analysis flow](../assets/flowchart.png)
-
-Sources are fetched concurrently and normalized into a common model
-(`Mention` / `TrendPoint` / `SourceResult`), deduplicated by a SHA-256
-content hash. If the LLM is unavailable, sentiment/emotion scoring falls
-back to a regex-based heuristic instead of failing the run. Each source
-result is tracked independently, so a run can finish as `success`,
-`partial`, or `failed` depending on which sources succeeded.
+</div>
 
 ---
 
-See each repository's README for local setup and CI/CD details.
+## How it works
+
+| 🔎 Collects | 🧠 Rates | 📈 Aggregates | 📊 Shows |
+| :---: | :---: | :---: | :---: |
+| GDELT, NewsAPI, RSS feeds and Google Trends are queried in parallel for a topic and period | An LLM rates the sentiment and emotion of every mention; a keyword heuristic takes over if it is unavailable | Mentions roll up into a 0–100 barometer index, emotion distribution and short insights | The dashboard shows the gauge, charts, trends and the mentions themselves |
+
+<div align="center">
+<a href="../assets/architecture.png"><img src="../assets/architecture.png" width="680" alt="Architecture"></a><br>
+<sub>Backend layers: <code>api → services → repositories → db</code>; models and migrations in a separate <code>digital-barometer-db</code> package</sub>
+</div>
+
+## Repositories
+
+<table>
+<tr><th colspan="2">🖥 Product</th></tr>
+<tr>
+<td width="48" align="center">🧠</td>
+<td><a href="https://github.com/digital-barometer/backend"><b>backend</b></a> — REST API, data collection, LLM sentiment and emotion analysis<br><sub>Python · FastAPI · dishka · SQLAlchemy · Alembic · PostgreSQL · LangChain</sub></td>
+</tr>
+<tr>
+<td align="center">📊</td>
+<td><a href="https://github.com/digital-barometer/frontend"><b>frontend</b></a> — dashboard: topics, sources, barometer and analysis charts<br><sub>React 18 · TypeScript · Vite · Tailwind CSS · Recharts</sub></td>
+</tr>
+<tr><th colspan="2">🏗️ Platform</th></tr>
+<tr>
+<td align="center">🛠️</td>
+<td><a href="https://github.com/digital-barometer/infra"><b>infra</b></a> — Traefik reverse proxy with automatic TLS and the shared PostgreSQL<br><sub>Traefik · Let's Encrypt · PostgreSQL 16 · Docker Compose</sub></td>
+</tr>
+</table>
+
+## Analysis flow
+
+<div align="center">
+<a href="../assets/flowchart.png"><img src="../assets/flowchart.png" width="300" alt="Analysis flow"></a>
+</div>
+
+Sources are queried in parallel, results are normalized to a common model (`Mention` / `TrendPoint` /
+`SourceResult`) and deduplicated by a SHA-256 content hash. Each source is tracked separately, so a run ends
+as `success`, `partial` or `failed` depending on which sources worked. API keys and `Authorization` headers
+are stripped from error messages before they are stored.
+
+## Getting started
+
+| I want to… | Go to |
+| --- | --- |
+| **deploy it** | [infra](https://github.com/digital-barometer/infra#quick-start) → [backend](https://github.com/digital-barometer/backend#quick-start) → [frontend](https://github.com/digital-barometer/frontend#quick-start) |
+| **integrate over REST** | [backend contracts](https://github.com/digital-barometer/backend#contracts) — Swagger at `/docs` |
+| **add a data source** | [backend features](https://github.com/digital-barometer/backend#features) — connectors and `ConnectorFactory` |
+
+## Data model
+
+<div align="center">
+<a href="../assets/db.png"><img src="../assets/db.png" width="420" alt="ERD"></a>
+</div>
+
+| Table | Purpose |
+| --- | --- |
+| `topics` | tracked topics and their keywords |
+| `sources` | configured data sources (GDELT, NewsAPI, RSS, Trends) |
+| `analysis_runs` | one analysis of a topic over a period |
+| `source_results` | per-source result within a run: status, item counts, metrics |
+| `mentions` | collected mentions with sentiment and emotion |
+| `trend_points` | time series from sources, e.g. Google Trends values |
+| `analysis_metrics` | aggregated sentiment and emotion figures and the barometer index |
+| `reports` | generated report files for a run |
