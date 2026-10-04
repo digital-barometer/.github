@@ -1,6 +1,6 @@
 <div align="center">
 
-![Digital Barometer](../assets/logo.svg){width=128 height=128}
+<img src="../assets/logo.svg" width="128" height="128" alt="Digital Barometer">
 
 # Digital Barometer
 
