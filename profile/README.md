@@ -6,8 +6,8 @@
 
 ### Media monitoring with an LLM sentiment barometer
 
-We collect mentions of a topic across the web, rate their sentiment and emotions,
-and turn them into trends and reports.
+Collects mentions of a topic from across the web, rates their sentiment and
+emotions, and turns them into trends and reports.
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
@@ -24,31 +24,28 @@ and turn them into trends and reports.
 
 ## How it works
 
-| 🔎 Collects | 🧠 Rates | 📈 Aggregates | 📊 Shows |
+| Collect | Rate | Aggregate | Show |
 | :---: | :---: | :---: | :---: |
-| GDELT, NewsAPI, RSS feeds and Google Trends are queried in parallel for a topic and period | An LLM rates the sentiment and emotion of every mention; a keyword heuristic takes over if it is unavailable | Mentions roll up into a 0–100 barometer index, emotion distribution and short insights | The dashboard shows the gauge, charts, trends and the mentions themselves |
+| Pulls GDELT, NewsAPI, RSS, and Google Trends in parallel for a topic and period | An LLM rates each mention's sentiment and emotion; keywords take over if it's down | Mentions add up to a 0–100 barometer, an emotion breakdown, and short insights | A dashboard with the gauge, charts, trends, and the mentions themselves |
 
 <div align="center">
 <a href="../assets/architecture.png"><img src="../assets/architecture.png" width="680" alt="Architecture"></a><br>
-<sub>Backend layers: <code>api → services → repositories → db</code>; models and migrations in a separate <code>digital-barometer-db</code> package</sub>
+<sub>Backend layers: <code>api → services → repositories → db</code>; models and migrations live in the <code>digital-barometer-db</code> package</sub>
 </div>
 
 ## Repositories
 
 <table>
-<tr><th colspan="2">🖥 Product</th></tr>
+<tr><th>Product</th></tr>
 <tr>
-<td width="48" align="center">🧠</td>
-<td><a href="https://github.com/digital-barometer/backend"><b>backend</b></a> — REST API, data collection, LLM sentiment and emotion analysis<br><sub>Python · FastAPI · dishka · SQLAlchemy · Alembic · PostgreSQL · LangChain</sub></td>
+<td><a href="https://github.com/digital-barometer/backend"><b>backend</b></a> — REST API, data collection, LLM analysis<br><sub>Python · FastAPI · dishka · SQLAlchemy · Alembic · PostgreSQL · LangChain</sub></td>
 </tr>
 <tr>
-<td align="center">📊</td>
-<td><a href="https://github.com/digital-barometer/frontend"><b>frontend</b></a> — dashboard: topics, sources, barometer and analysis charts<br><sub>React 18 · TypeScript · Vite · Tailwind CSS · Recharts</sub></td>
+<td><a href="https://github.com/digital-barometer/frontend"><b>frontend</b></a> — the dashboard<br><sub>React 18 · TypeScript · Vite · Tailwind CSS · Recharts</sub></td>
 </tr>
-<tr><th colspan="2">🏗️ Platform</th></tr>
+<tr><th>Platform</th></tr>
 <tr>
-<td align="center">🛠️</td>
-<td><a href="https://github.com/digital-barometer/infra"><b>infra</b></a> — Traefik reverse proxy with automatic TLS and the shared PostgreSQL<br><sub>Traefik · Let's Encrypt · PostgreSQL 16 · Docker Compose</sub></td>
+<td><a href="https://github.com/digital-barometer/infra"><b>infra</b></a> — Traefik with automatic TLS and a shared PostgreSQL<br><sub>Traefik · Let's Encrypt · PostgreSQL 16 · Docker Compose</sub></td>
 </tr>
 </table>
 
@@ -58,18 +55,18 @@ and turn them into trends and reports.
 <a href="../assets/flowchart.png"><img src="../assets/flowchart.png" width="300" alt="Analysis flow"></a>
 </div>
 
-Sources are queried in parallel, results are normalized to a common model (`Mention` / `TrendPoint` /
-`SourceResult`) and deduplicated by a SHA-256 content hash. Each source is tracked separately, so a run ends
-as `success`, `partial` or `failed` depending on which sources worked. API keys and `Authorization` headers
-are stripped from error messages before they are stored.
+Sources are queried in parallel, mapped to one model (`Mention` / `TrendPoint` /
+`SourceResult`), and deduplicated by content hash. Each source is tracked on its
+own, so a run ends as `success`, `partial`, or `failed`. API keys are scrubbed
+from error messages before they're saved.
 
 ## Getting started
 
 | I want to… | Go to |
 | --- | --- |
 | **deploy it** | [infra](https://github.com/digital-barometer/infra#quick-start) → [backend](https://github.com/digital-barometer/backend#quick-start) → [frontend](https://github.com/digital-barometer/frontend#quick-start) |
-| **integrate over REST** | [backend contracts](https://github.com/digital-barometer/backend#contracts) — Swagger at `/docs` |
-| **add a data source** | [backend features](https://github.com/digital-barometer/backend#features) — connectors and `ConnectorFactory` |
+| **use the API** | [backend contracts](https://github.com/digital-barometer/backend#contracts), Swagger at `/docs` |
+| **add a data source** | [backend features](https://github.com/digital-barometer/backend#features) |
 
 ## Data model
 
@@ -77,13 +74,13 @@ are stripped from error messages before they are stored.
 <a href="../assets/db.png"><img src="../assets/db.png" width="420" alt="ERD"></a>
 </div>
 
-| Table | Purpose |
+| Table | What's in it |
 | --- | --- |
-| `topics` | tracked topics and their keywords |
-| `sources` | configured data sources (GDELT, NewsAPI, RSS, Trends) |
+| `topics` | topics and their keywords |
+| `sources` | data sources (GDELT, NewsAPI, RSS, Trends) |
 | `analysis_runs` | one analysis of a topic over a period |
-| `source_results` | per-source result within a run: status, item counts, metrics |
-| `mentions` | collected mentions with sentiment and emotion |
-| `trend_points` | time series from sources, e.g. Google Trends values |
-| `analysis_metrics` | aggregated sentiment and emotion figures and the barometer index |
-| `reports` | generated report files for a run |
+| `source_results` | how each source did in a run |
+| `mentions` | mentions with sentiment and emotion |
+| `trend_points` | time series, e.g. Google Trends |
+| `analysis_metrics` | totals and the barometer index |
+| `reports` | generated report files |
